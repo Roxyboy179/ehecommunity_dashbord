@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EHE Community Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Partikel Hintergrund */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Willkommens Popup */
+        .welcome-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 8888;
+            backdrop-filter: blur(10px);
+        }
+
+        .popup-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .popup-content h2 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .popup-content p {
+            margin-bottom: 30px;
+            line-height: 1.6;
+            color: #cccccc;
+        }
+
+        .popup-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-accept {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+        }
+
+        .btn-accept:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-decline {
+            background: linear-gradient(45deg, #ff4757, #cc3644);
+            color: white;
+        }
+
+        .btn-decline:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 71, 87, 0.3);
+        }
+
+        /* Hauptinhalt */
+        .main-content {
+            position: relative;
+            z-index: 2;
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInUp 1s ease;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            background: linear-gradient(45deg, #00d4ff, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #cccccc;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .info-section h2 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .info-section p {
+            line-height: 1.6;
+            color: #cccccc;
+            margin-bottom: 15px;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .card h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .card p {
+            color: #cccccc;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .card-link {
+            display: inline-block;
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .card-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .blocked-access {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+        }
+
+        .blocked-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .blocked-content h2 {
+            color: #ff4757;
+            margin-bottom: 20px;
+        }
+
+        .blocked-content p {
+            color: #cccccc;
+            margin-bottom: 30px;
+        }
+
+        .reload-btn {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .reload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Notifikationssystem */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: 400px;
+        }
+
+        .notification {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transform: translateX(420px);
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        .notification.success {
+            border-color: rgba(0, 255, 0, 0.3);
+        }
+
+        .notification.warning {
+            border-color: rgba(255, 193, 7, 0.3);
+        }
+
+        .notification.error {
+            border-color: rgba(255, 71, 87, 0.3);
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .notification-title {
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: #cccccc;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-close:hover {
+            color: #ffffff;
+        }
+
+        .notification-message {
+            color: #cccccc;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        @keyframes slideIn {
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOut {
+            to {
+                transform: translateX(420px);
+            }
+        }
+
+        
+        
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+
+        
+        .maintenance-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 15, 23, 0.98);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 1s ease;
+        }
+
+        .maintenance-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 212, 255, 0.2);
+            max-width: 500px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .maintenance-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            color: #ffaa00;
+            animation: pulse 2s infinite;
+        }
+
+        .maintenance-content h2 {
+            color: #ffaa00;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+
+        .maintenance-content p {
+            color: #cccccc;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .maintenance-time {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            color: #ffffff;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ffaa00;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+
+        /* Richtlinien Modal */
+        .guidelines-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+        }
+
+        .guidelines-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .guidelines-content h2 {
+            color: #00d4ff;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            text-align: center;
+        }
+
+        .guidelines-content h3 {
+            color: #00d4ff;
+            margin: 25px 0 15px 0;
+            font-size: 1.3rem;
+        }
+
+        .guidelines-content p {
+            color: #cccccc;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .guidelines-content ul {
+            color: #cccccc;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .guidelines-content li {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .guidelines-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .guidelines-link {
+            color: #00d4ff;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .guidelines-link:hover {
+            border-bottom-color: #00d4ff;
+        }
+
+        /* Notifikations-Button */
+        .notification-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            font-size: 24px;
+        }
+
+        .notification-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.4);
+        }
+
+        .guidelines-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .guidelines-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.4);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .popup-content {
+                margin: 20px;
+                padding: 30px;
+            }
+            
+            .popup-buttons {
+                flex-direction: column;
+            }
+            
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Partikel Hintergrund -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Willkommens Popup -->
+    <div class="welcome-popup" id="welcomePopup">
+        <div class="popup-content">
+            <h2>Willkommen bei EHE Community</h2>
+            <p>Bevor Sie fortfahren, müssen Sie unseren Richtlinien zustimmen. Diese Zustimmung ist bei jedem Besuch erforderlich, um die Sicherheit und den ordnungsgemäßen Betrieb unserer Dienste zu gewährleisten.</p>
+            <p style="font-size: 14px; color: #ffcc00; margin-top: 15px;">
+                📋 <a href="#" onclick="showGuidelines(); return false;" class="guidelines-link">Richtlinien vollständig lesen</a>
+            </p>
+            <div class="popup-buttons">
+                <button class="btn btn-accept" onclick="acceptGuidelines()">Zustimmen</button>
+                <button class="btn btn-decline" onclick="declineGuidelines()">Ablehnen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifikationssystem -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Floating Buttons -->
+    <button class="notification-toggle" onclick="showTestNotification()" title="Test Benachrichtigung">
+        🔔
+    </button>
+    
+    <button class="guidelines-button" onclick="showGuidelines()" title="Richtlinien anzeigen">
+        📋
+    </button>
+
+    <!-- Richtlinien Modal -->
+    <div class="guidelines-modal hidden" id="guidelinesModal">
+        <div class="guidelines-content">
+            <h2>EHE Community Richtlinien</h2>
+            
+            <h3>🔐 Warum müssen Sie diesen Richtlinien zustimmen?</h3>
+            <p>Die Zustimmung zu unseren Richtlinien ist aus folgenden wichtigen Gründen erforderlich:</p>
+            
+            <h3>1. Rechtliche Absicherung</h3>
+            <ul>
+                <li>Schutz vor Missbrauch unserer Dienste</li>
+                <li>Einhaltung der DSGVO und anderer Datenschutzgesetze</li>
+                <li>Klarstellung der Nutzungsbedingungen</li>
+                <li>Schutz geistigen Eigentums</li>
+            </ul>
+            
+            <h3>2. Sicherheit & Datenschutz</h3>
+            <ul>
+                <li>Schutz Ihrer persönlichen Daten</li>
+                <li>Verhinderung von Cyberangriffen</li>
+                <li>Sicherstellung der Systemstabilität</li>
+                <li>Schutz vor schädlichen Inhalten</li>
+            </ul>
+            
+            <h3>3. Qualitätssicherung</h3>
+            <ul>
+                <li>Aufrechterhaltung hoher Service-Standards</li>
+                <li>Gewährleistung einer professionellen Umgebung</li>
+                <li>Schutz der Community vor Spam und Missbrauch</li>
+                <li>Sicherstellung der Verfügbarkeit unserer Dienste</li>
+            </ul>
+            
+            <h3>4. Ihre Rechte und Pflichten</h3>
+            <p>Durch die Zustimmung erkennen Sie an, dass Sie:</p>
+            <ul>
+                <li>Unsere Dienste verantwortungsvoll nutzen</li>
+                <li>Keine rechtswidrigen Inhalte teilen</li>
+                <li>Die Privatsphäre anderer respektieren</li>
+                <li>Unsere Infrastruktur nicht überlasten</li>
+            </ul>
+            
+            <h3>5. Warum bei jedem Besuch?</h3>
+            <p>Die erneute Zustimmung bei jedem Besuch stellt sicher, dass:</p>
+            <ul>
+                <li>Sie immer über aktuelle Änderungen informiert sind</li>
+                <li>Ihre bewusste Entscheidung zur Nutzung dokumentiert ist</li>
+                <li>Höchste Sicherheitsstandards eingehalten werden</li>
+                <li>Datenschutz-Compliance gewährleistet ist</li>
+            </ul>
+            
+            <h3>6. Unsere Verpflichtungen</h3>
+            <p>Im Gegenzug verpflichten wir uns:</p>
+            <ul>
+                <li>Ihre Daten sicher und vertraulich zu behandeln</li>
+                <li>Transparente und faire Nutzungsbedingungen zu bieten</li>
+                <li>Kontinuierliche Verbesserung unserer Dienste</li>
+                <li>Schnelle Unterstützung bei Problemen</li>
+            </ul>
+            
+            <p style="margin-top: 30px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; border-left: 4px solid #00d4ff;">
+                <strong>Wichtiger Hinweis:</strong> Ohne Zustimmung zu diesen Richtlinien können wir Ihnen keinen Zugang zu unseren Diensten gewähren. Dies dient dem Schutz aller Nutzer und der Rechtssicherheit.
+            </p>
+            
+            <p>Für detaillierte Informationen besuchen Sie unsere vollständigen <a href="https://roxyboy179.github.io/ehe_richtlinien/" target="_blank" class="guidelines-link">Richtlinien-Seite</a>.</p>
+            
+            <div class="guidelines-buttons">
+                <button class="btn btn-accept" onclick="acceptGuidelinesFromModal()">Verstanden & Zustimmen</button>
+                <button class="btn btn-decline" onclick="closeGuidelines()">Schließen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zugang gesperrt -->
+    <div class="blocked-access hidden" id="blockedAccess">
+        <div class="blocked-content">
+            <h2>Zugang gesperrt</h2>
+            <p>Sie haben den Richtlinien nicht zugestimmt. Bitte laden Sie die Seite neu, um erneut zuzustimmen.</p>
+            <button class="reload-btn" onclick="location.reload()">Seite neu laden</button>
+        </div>
+    </div>
+
+    
+
+<!-- Wartungsarbeiten-Popup -->
+<div class="maintenance-popup hidden" id="maintenancePopup">
+    <div class="maintenance-content">
+        <div class="maintenance-icon">🛠</div>
+        <h2>Geplante Wartungsarbeiten</h2>
+        <p>Um die Stabilität und Sicherheit unserer Plattform zu gewährleisten, führen wir derzeit Wartungsarbeiten durch.</p>
+        <div class="maintenance-time">
+            <strong>Beginn:</strong> 06.07.2025 – 09:00 Uhr<br>
+            <strong>Ende:</strong> 11.07.2025 – 12:30 Uhr
+        </div>
+        <p style="margin-top: 20px; font-size: 0.9rem; color: #cccccc;">Bitte versuchen Sie es später erneut. Wir danken für Ihr Verständnis.</p>
+    </div>
+</div>
+
+<div class="maintenance-popup hidden" id="maintenancePopup">
+    <div class="blocked-content" style="animation: fadeInUp 0.7s ease;">
+        <h2 style="color: #ffaa00;">🛠 Wartungsarbeiten</h2>
+        <p>Die EHE Community führt aktuell Wartungsarbeiten durch.<br>
+        Einige Dienste können vorübergehend nicht erreichbar sein.</p>
+        <p style="margin-top: 20px; color: #ffcc00;">Beginn: 06.07.2025, 09:00 Uhr<br>
+        Ende: 11.07.2025, 12:30 Uhr</p>
+    </div>
+</div>
+
+
+    <!-- Hauptinhalt -->
+    <div class="main-content hidden" id="mainContent">
+        <div class="header">
+            <h1>EHE Community Dashboard</h1>
+            <p>Ihr zentraler Zugang zu allen EHE Community Services und Ressourcen</p>
+        </div>
+
+        <div class="info-section">
+            <h2>Über EHE Community</h2>
+            <p>EHE Community ist eine umfassende Plattform, die verschiedene Webdienste und Tools unter einem Dach vereint. Unser Ziel ist es, eine zentrale Anlaufstelle für alle Ihre digitalen Bedürfnisse zu schaffen.</p>
+            <p><strong>Warum EHE Community?</strong> Wir bieten eine benutzerfreundliche Oberfläche, die es Ihnen ermöglicht, schnell und einfach auf alle unsere Services zuzugreifen. Von Webentwicklung bis hin zu Community-Support - alles an einem Ort.</p>
+            <p><strong>Unser Service existiert, weil:</strong> Wir glauben daran, dass digitale Lösungen zugänglich und benutzerfreundlich sein sollten. Durch die Zusammenführung verschiedener Tools und Services schaffen wir eine effiziente und übersichtliche Arbeitsumgebung.</p>
+        </div>
+
+        <div class="cards-container">
+            <div class="card">
+                <h3>EHE Webstudios</h3>
+                <p>Professionelle Webentwicklung und Design-Services für Ihre digitalen Projekte.</p>
+                <a href="https://roxyboy179.github.io/ehestudios/" class="card-link" target="_blank">Besuchen</a>
+            </div>
+
+            <div class="card">
+                <h3>Community Richtlinien</h3>
+                <p>Lesen Sie unsere Nutzungsrichtlinien und Datenschutzbestimmungen.</p>
+                <a href="https://roxyboy179.github.io/ehe_richtlinien/" class="card-link" target="_blank">Ansehen</a>
+            </div>
+
+            <div class="card">
+                <h3>System Status</h3>
+                <p>Überprüfen Sie den aktuellen Status aller EHE Community Services.</p>
+                <a href="https://roxyboy179.github.io/ehecommunity_systemstatus/" class="card-link" target="_blank">Status prüfen</a>
+            </div>
+
+            <div class="card">
+                <h3>Helpcenter</h3>
+                <p>Finden Sie Antworten auf häufig gestellte Fragen und erhalten Sie Support.</p>
+                <a href="https://roxyboy179.github.io/ehecommunity_helpcenter/" class="card-link" target="_blank">Hilfe erhalten</a>
+            </div>
+
+            <div class="card">
+                <h3>Hauptseite</h3>
+                <p>Besuchen Sie unsere Hauptseite für weitere Informationen über EHE Community.</p>
+                <a href="https://roxyboy179.github.io/ehe-community2" class="card-link" target="_blank">Zur Hauptseite</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Partikel Animation
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Loading Screen
+        function hideLoadingScreen() {
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loadingScreen').classList.add('hidden');
+                    showWelcomePopup();
+                }, 500);
+            }, 2000);
+        }
+
+        // Willkommens Popup
+        function showWelcomePopup() {
+            document.getElementById('welcomePopup').classList.remove('hidden');
+        }
+
+        function acceptGuidelines() {
+        showMaintenancePopupIfNeeded();
+            document.getElementById('welcomePopup').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+        }
+
+        function declineGuidelines() {
+            document.getElementById('welcomePopup').classList.add('hidden');
+            document.getElementById('blockedAccess').classList.remove('hidden');
+        }
+
+        // Richtlinien-Zustimmung bei jedem Seitenaufruf
+        function checkGuidelines() {
+            // Keine lokale Speicherung - Zustimmung bei jedem Besuch erforderlich
+            return false;
+        }
+
+        // Notifikationssystem
+        function showNotification(title, message, type = 'info', duration = 5000) {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            notification.innerHTML = `
+                <div class="notification-header">
+                    <div class="notification-title">${title}</div>
+                    <button class="notification-close" onclick="closeNotification(this)">×</button>
+                </div>
+                <div class="notification-message">${message}</div>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Auto-remove nach der angegebenen Zeit
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    closeNotification(notification.querySelector('.notification-close'));
+                }
+            }, duration);
+        }
+
+        function closeNotification(button) {
+            const notification = button.closest('.notification');
+            notification.style.animation = 'slideOut 0.3s ease forwards';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }
+
+        function showTestNotification() {
+            const notifications = [
+                {
+                    title: "Willkommen!",
+                    message: "EHE Community Dashboard erfolgreich geladen.",
+                    type: "success"
+                },
+                {
+                    title: "System Status",
+                    message: "Alle Dienste sind online und verfügbar.",
+                    type: "info"
+                },
+                {
+                    title: "Wartung geplant",
+                    message: "Geplante Wartung am Sonntag um 02:00 Uhr.",
+                    type: "warning"
+                }
+            ];
+            
+            const randomNotification = notifications[Math.floor(Math.random() * notifications.length)];
+            showNotification(randomNotification.title, randomNotification.message, randomNotification.type);
+        }
+
+        // Richtlinien Modal
+        function showGuidelines() {
+            document.getElementById('guidelinesModal').classList.remove('hidden');
+        }
+
+        function closeGuidelines() {
+            document.getElementById('guidelinesModal').classList.add('hidden');
+        }
+
+        function acceptGuidelinesFromModal() {
+        showMaintenancePopupIfNeeded();
+            closeGuidelines();
+            document.getElementById('welcomePopup').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            showNotification("Richtlinien akzeptiert", "Willkommen bei EHE Community! Alle Dienste sind jetzt verfügbar.", "success");
+        }
+
+        // Erweiterte Zustimmungsfunktionen
+        function acceptGuidelines() {
+        showMaintenancePopupIfNeeded();
+            document.getElementById('welcomePopup').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+        }
+
+        function declineGuidelines() {
+            document.getElementById('welcomePopup').classList.add('hidden');
+            document.getElementById('blockedAccess').classList.remove('hidden');
+        }
+
+        
+    function showMaintenancePopupIfNeeded() {
+        const now = new Date();
+        const start = new Date('2025-07-06T09:00:00');
+        const end = new Date('2025-07-11T12:30:00');
+
+        if (now >= start && now <= end) {
+            document.getElementById('maintenancePopup').classList.remove('hidden');
+            document.getElementById('mainContent').classList.add('hidden');
+        }
+    }
+
+
+        // Initialisierung
+        window.onload = function() {
+            showMaintenancePopupIfNeeded();
+            createParticles();
+            hideLoadingScreen();
+        };
+
+        // Verhindert Caching für neue Zustimmung bei jedem Besuch
+        if (performance.navigation.type === 2) {
+            location.reload(true);
+        }
+    </script>
+</body>
+</html>
