@@ -735,10 +735,10 @@
     <div class="maintenance-content">
         <div class="maintenance-icon">🛠</div>
         <h2>Aktive Wartungsarbeiten</h2>
-        <p>Um die Stabilität und Sicherheit unserer Plattform zu gewährleisten, führen wir derzeit Wartungsarbeiten durch.</p>
+        <p>Um die Stabilität und Sicherheit unserer Plattform zu gewährleisten, führen wir derzeit Wartungsarbeiten durch. - AKTUELLE UPDATE VERSION: V01 - NEUE UPDATE VERSION: V20 (ON BETA)</p>
         <div class="maintenance-time">
-            <strong>Beginn:</strong> 15.07.2025 – 11:30 Uhr<br>
-            <strong>Ende:</strong> 16.07.2025 – 11:30 Uhr
+            <strong>Beginn:</strong> 24.07.2025 – 11:30 Uhr<br>
+            <strong>Ende:</strong> 01.01.2026 – 11:30 Uhr
         </div>
         <p style="margin-top: 20px; font-size: 0.9rem; color: #cccccc;">Bitte versuchen Sie es später erneut. Wir danken für Ihr Verständnis.</p>
     </div>
@@ -962,8 +962,8 @@
         
     function showMaintenancePopupIfNeeded() {
         const now = new Date();
-        const start = new Date('2025-07-15T11:30:00');
-        const end = new Date('2025-07-16T11:30:00');
+        const start = new Date('2025-07-24T11:30:00');
+        const end = new Date('2026-01-01T11:30:00');
 
         if (now >= start && now <= end) {
             document.getElementById('maintenancePopup').classList.remove('hidden');
